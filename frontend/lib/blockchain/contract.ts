@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { getContract } from "./provider";
+import { getContract } from "./providers";
 
 export const AirQualityRecordABI = [];
 
