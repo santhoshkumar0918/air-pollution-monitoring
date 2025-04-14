@@ -1,3 +1,8 @@
+/**
+ * Air quality classification utilities
+ * Based on the reference tables from the provided requirements
+ */
+
 // PM10 categories (μg/m³)
 export const PM10Categories = {
   Clean: { min: 0, max: 99 },
@@ -19,7 +24,11 @@ export const PM25Categories = {
   Level6: { min: 250.5, max: 500.4 },
 };
 
-// Function to determine PM10 category
+/**
+ * Get the PM10 category for a given value
+ * @param value PM10 value in μg/m³
+ * @returns Category name
+ */
 export function getPM10Category(value: number): string {
   for (const [category, range] of Object.entries(PM10Categories)) {
     if (value >= range.min && value <= range.max) {
@@ -29,7 +38,11 @@ export function getPM10Category(value: number): string {
   return "Unknown";
 }
 
-// Function to determine PM2.5 category
+/**
+ * Get the PM2.5 category for a given value
+ * @param value PM2.5 value in μg/m³
+ * @returns Category name
+ */
 export function getPM25Category(value: number): string {
   for (const [category, range] of Object.entries(PM25Categories)) {
     if (value >= range.min && value <= range.max) {
@@ -39,7 +52,16 @@ export function getPM25Category(value: number): string {
   return "Unknown";
 }
 
-// Function to determine if a reading should go on blockchain
+/**
+ * Determine if a reading should be stored on blockchain
+ * Based on the thresholds specified in the requirements:
+ * - PM10 > 350 μg/m³ (Attention, Alert, Warning, Emergency categories)
+ * - PM2.5 > 55.5 μg/m³ (Level4, Level5, Level6 categories)
+ *
+ * @param pm10Value PM10 value in μg/m³
+ * @param pm25Value PM2.5 value in μg/m³
+ * @returns Boolean indicating if the reading should go on blockchain
+ */
 export function shouldStoreOnBlockchain(
   pm10Value: number,
   pm25Value: number
