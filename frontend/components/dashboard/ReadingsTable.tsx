@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
 
+// Reading type from database
 type Reading = {
   id: string;
   timestamp: string;
@@ -11,6 +10,7 @@ type Reading = {
   pm25_value: number;
   pm10_category: string;
   pm25_value_category: string;
+  location: string;
   stored_on_chain: boolean;
   transaction_hash: string | null;
 };
@@ -37,13 +37,13 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
     return date.toLocaleString();
   };
 
-  // Helper to determine badge color based on category
+  // Helper to determine badge color based on category for PM10
   const getPM10BadgeColor = (category: string) => {
     switch (category) {
       case "Clean":
-        return "bg-green-100 text-green-800";
-      case "Normal":
         return "bg-blue-100 text-blue-800";
+      case "Normal":
+        return "bg-green-100 text-green-800";
       case "Moderate":
         return "bg-yellow-100 text-yellow-800";
       case "Attention":
@@ -53,12 +53,13 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
       case "Warning":
         return "bg-purple-100 text-purple-800";
       case "Emergency":
-        return "bg-red-100 text-red-800";
+        return "bg-red-200 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
+  // Helper to determine badge color based on category for PM2.5
   const getPM25BadgeColor = (category: string) => {
     switch (category) {
       case "Level1":
@@ -80,7 +81,7 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
 
   // Helper to get Polygonscan URL
   const getPolygonscanUrl = (hash: string) => {
-    // Use Mumbai testnet for development, Polygon mainnet for production
+    // Use Mumbai testnet for development
     return `https://mumbai.polygonscan.com/tx/${hash}`;
   };
 
@@ -112,7 +113,7 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Category
+                Location
               </th>
               <th
                 scope="col"
@@ -124,7 +125,7 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Actions
+                Verify
               </th>
             </tr>
           </thead>
@@ -134,31 +135,38 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {formatDate(reading.timestamp)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {reading.pm10_value}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {reading.pm25_value}
-                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-900 mr-2">
+                      {reading.pm10_value}
+                    </span>
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPM10BadgeColor(
                         reading.pm10_category
                       )}`}
                     >
-                      PM10: {reading.pm10_category}
+                      {reading.pm10_category}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-900 mr-2">
+                      {reading.pm25_value}
                     </span>
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPM25BadgeColor(
                         reading.pm25_value_category
                       )}`}
                     >
-                      PM2.5: {reading.pm25_value_category}
+                      {reading.pm25_value_category}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {reading.location}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   {reading.stored_on_chain ? (
                     <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
                       Blockchain
@@ -170,26 +178,32 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
-                    <Link
-                      href={`/readings/${reading.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                  {reading.stored_on_chain && reading.transaction_hash ? (
+                    <a
+                      href={getPolygonscanUrl(reading.transaction_hash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 hover:text-purple-900 flex items-center"
                     >
-                      Details
-                    </Link>
-
-                    {reading.stored_on_chain && reading.transaction_hash && (
-                      <a
-                        href={getPolygonscanUrl(reading.transaction_hash)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center text-purple-600 hover:text-purple-900"
+                      <span>View on Polygonscan</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 ml-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
                       >
-                        <span className="mr-1">Verify</span>
-                        <ExternalLink size={14} />
-                      </a>
-                    )}
-                  </div>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
+                  ) : (
+                    <span className="text-gray-400">N/A</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -199,7 +213,7 @@ export default function ReadingsTable({ readings }: ReadingsTableProps) {
 
       {/* Pagination */}
       {readings.length > itemsPerPage && (
-        <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+        <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200 bg-white">
           <div>
             <p className="text-sm text-gray-700">
               Showing{" "}

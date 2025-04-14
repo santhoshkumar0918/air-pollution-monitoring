@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Line } from "recharts";
 import {
   LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,7 +12,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Reading type from database
 type Reading = {
+  id: string;
   timestamp: string;
   pm10_value: number;
   pm25_value: number;
@@ -27,7 +29,7 @@ export default function AirQualityChart({ readings }: AirQualityChartProps) {
   const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
-    // Process readings for the chart
+    // Process readings for the chart - sort by timestamp
     const processedData = readings
       .slice()
       .sort(
@@ -51,7 +53,11 @@ export default function AirQualityChart({ readings }: AirQualityChartProps) {
   const pm10Threshold = 350;
   const pm25Threshold = 55.5;
 
-  // Custom tooltip to show the storage type
+  // Reference lines data
+  const pm10ThresholdData = chartData.map(() => ({ pm10Threshold }));
+  const pm25ThresholdData = chartData.map(() => ({ pm25Threshold }));
+
+  // Custom tooltip to show storage location
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -103,12 +109,13 @@ export default function AirQualityChart({ readings }: AirQualityChartProps) {
             yAxisId="left"
             type="monotone"
             dataKey="pm10Threshold"
+            data={pm10ThresholdData}
             stroke="#FF0000"
             strokeDasharray="5 5"
             dot={false}
             activeDot={false}
             isAnimationActive={false}
-            data={Array(chartData.length).fill({ pm10Threshold })}
+            name="PM10 Threshold (350)"
           />
 
           {/* PM2.5 threshold reference line */}
@@ -116,12 +123,13 @@ export default function AirQualityChart({ readings }: AirQualityChartProps) {
             yAxisId="right"
             type="monotone"
             dataKey="pm25Threshold"
+            data={pm25ThresholdData}
             stroke="#FF0000"
             strokeDasharray="5 5"
             dot={false}
             activeDot={false}
             isAnimationActive={false}
-            data={Array(chartData.length).fill({ pm25Threshold })}
+            name="PM2.5 Threshold (55.5)"
           />
 
           {/* PM10 line */}
